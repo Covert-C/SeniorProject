@@ -1,0 +1,165 @@
+function Analysis() {                            //Code to get the most recent day of stock info for multiple stocks
+
+  var series = "TIME_SERIES_DAILY";
+  var series2 = "Time Series (Daily)";
+  console.log("series", series);
+  console.log("series2", series2);
+  Populate(series,series2);
+}
+function Analysis2() {                            //Code to get the most recent day of stock info for multiple stocks
+
+  var series = "TIME_SERIES_WEEKLY";
+  var series2 = "Weekly Time Series";
+  console.log("series", series);
+  console.log("series2", series2);
+  Populate(series,series2);
+}
+function Analysis3() {                            //Code to get the most recent day of stock info for multiple stocks
+
+  var series = "TIME_SERIES_MONTHLY";
+  var series2 = "Monthly Time Series";
+  console.log("series", series);
+  console.log("series2", series2);
+  Populate(series,series2);
+}
+
+
+function Populate(series,series2) {
+console.log("series", series);
+console.log("series2", series2);
+
+
+  var counter = 0;
+  var apikey = "FEAJ4A016H6NN2L9";
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  //var cellcount = SpreadsheetApp.getActiveSpreadsheet();
+  var stockSheet = ss.getSheetByName("Stock Analysis");
+
+
+  stockSheet.getRange("B7:I").clear();
+  stockSheet.getRange("A8:A").clear();        //clears the table of all stock data
+
+
+  stockSheet
+    .getRange("A1")
+    .setNumberFormat("@STRING")
+    .setValue("Stock Analysis");
+  stockSheet.getRange("A6").setNumberFormat("@STRING").setValue("STOCK SYMBOL");
+  stockSheet.getRange("B6").setNumberFormat("@STRING").setValue("DATE");
+  stockSheet.getRange("C6").setNumberFormat("@STRING").setValue("OPEN");
+  stockSheet.getRange("D6").setNumberFormat("@STRING").setValue("CLOSE");
+  stockSheet.getRange("E6").setNumberFormat("@STRING").setValue("HIGH");
+  stockSheet.getRange("F6").setNumberFormat("@STRING").setValue("LOW");
+  stockSheet.getRange("G6").setNumberFormat("@STRING").setValue("VOLUME");                           //Formatting for the Google sheet
+  stockSheet.getRange("H6").setNumberFormat("@STRING").setValue("SHARES");
+  stockSheet
+    .getRange("I6")
+    .setNumberFormat("@STRING")
+    .setValue("PUCHASE PRICE");
+  stockSheet
+    .getRange("J6")
+    .setNumberFormat("@STRING")
+    .setValue("PURCHASE VALUE");
+  stockSheet.getRange("K6").setNumberFormat("@STRING").setValue("CLOSE VALUE");
+  stockSheet.getRange("L6").setNumberFormat("@STRING").setValue("GAIN");
+
+  stockSheet.getRange("A1:A4").setFontSize(24).setFontWeight("bold");
+  stockSheet
+    .getRange("A6:Z6")
+    .setBackgroundRGB(211, 211, 211)
+    .setFontSize(10)
+    .setFontWeight("bold");
+
+
+  var j = 7;
+
+  var symbol = stockSheet.getRange(7, 1).getValue();
+
+  var URL_STRING =
+    "https://www.alphavantage.co/query?function=" + series + "&symbol=" +
+    symbol +
+    "&apikey=" +
+    apikey;
+  //console.log("url --->", URL_STRING)
+  var response = UrlFetchApp.fetch(URL_STRING);                         //fetches data from URL and parses it through json
+
+  console.log("response --->", response);
+  var json = response.getContentText();
+
+  var data = JSON.parse(json);
+  //console.log("json --->", json);
+  var len = json.length;
+  //console.log("leng -->", len);
+  if (len < 200) {
+    SpreadsheetApp.getUi().alert('Please Fill Cell A7 With A Valid Stock Symbol');          //determines if Symbol is viable
+  }
+
+
+  // console.log("response --->", response);
+  // console.log("json --->", json);
+  // console.log("data --->", data);
+
+
+  for (const [key, value] of Object.entries(data)) {
+    // console.log("RunThrough # --->", counter);
+    // console.log("key --->", key);
+    // console.log("value --->", value);
+    // console.log("data --->", data);
+
+    for (const [key2, value2] of Object.entries(value)) {              //Cycles through the data (Grabs open, close, high, low, and volume)
+      // console.log("RunThrough # --->", counter);
+      // console.log("key --->", key);
+      // console.log("key2 --->", key2);
+      // console.log("value2 --->", value2);
+      // console.log("value --->", value);
+
+      if (key == series2) {
+        for (const [key3, value3] of Object.entries(value2)) {
+          // counter = counter + 1;
+          // console.log("RunThrough # --->", counter);
+          // console.log("key --->", key);
+          // console.log("key2 --->", key2);
+          // console.log("key3 --->", key3);
+          // console.log("value3 --->", value3);
+          // console.log("value2 --->", value2);
+          var date = key2;
+          stockSheet.getRange(j, 2).setValue(date);
+
+          if (key3 == "1. open") {
+            var open = value3;
+            console.log("open -->", open);
+            stockSheet.getRange(j, 3).setValue(open);
+          }
+          if (key3 == "2. high") {
+            var high = value3;
+            console.log("high -->", high);
+            stockSheet.getRange(j, 5).setValue(high);
+          }
+          if (key3 == "3. low") {
+            var low = value3;
+            console.log("low -->", low);
+            stockSheet.getRange(j, 6).setValue(low);
+          }
+          if (key3 == "4. close") {
+            var close = value3;
+            console.log("close -->", close);
+            stockSheet.getRange(j, 4).setValue(close);
+            if (close < open) {
+              stockSheet.getRange(j, 4).setBackgroundRGB(255, 102, 102);
+            } else {
+              stockSheet.getRange(j, 4).setBackgroundRGB(0, 179, 0);
+            }
+          }
+          if (key3 == "5. volume") {
+            var volume = value3;
+            console.log("volume -->", volume);
+            stockSheet.getRange(j, 7).setValue(volume);
+          }
+
+        }
+
+        j = j + 1;
+      }
+    }
+  }
+}
