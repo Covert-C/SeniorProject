@@ -1,0 +1,22 @@
+function doGet(e) {
+          //console.log("got here");
+  return HtmlService.createHtmlOutputFromFile('WebAppChart');
+          //console.log("got there");
+}
+
+function getStock() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var stockSheet = ss.getSheetByName("Stock Analysis");
+  var range = stockSheet.getRange("D4");
+  var lastRow = range.getValue();
+          // console.log("ss --->", ss);
+          // console.log("casesSheet --->", stockSheet);
+          // console.log("getlstrow --->", lastRow);
+
+  var arr = stockSheet.getRange("B7:C" + lastRow).getValues();               //converts the data into an array then flips it
+          // console.log("arr--->", arr);
+
+  arr.reverse();
+          //console.log("arr--->", arr);
+  return arr;
+}
