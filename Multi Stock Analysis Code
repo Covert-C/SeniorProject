@@ -1,0 +1,112 @@
+function stockAnalysis() {      //Code to get the most recent day of stock info for multiple stocks
+
+
+  function sleep(milliseconds) {
+    const datesleep = Date.now();
+    let currentDate = null;                 //Function to make the code sleep for a specified amount of milliseconds
+    do {
+      currentDate = Date.now();
+    }
+    while (currentDate - datesleep < milliseconds);
+  }
+
+  var counter = 0;
+  var apikey = 'FEAJ4A016H6NN2L9';
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var stockSheet = ss.getSheetByName("Stock Analysis");
+
+  stockSheet.getRange('B7:I1000').clear();        //clears the table of all stock data
+
+  stockSheet.getRange("A1").setNumberFormat('@STRING').setValue('Stock Analysis')
+  stockSheet.getRange("A6").setNumberFormat('@STRING').setValue('STOCK SYMBOL')
+  stockSheet.getRange("B6").setNumberFormat('@STRING').setValue('DATE')
+  stockSheet.getRange("C6").setNumberFormat('@STRING').setValue('OPEN')
+  stockSheet.getRange("D6").setNumberFormat('@STRING').setValue('CLOSE')
+  stockSheet.getRange("E6").setNumberFormat('@STRING').setValue('HIGH')
+  stockSheet.getRange("F6").setNumberFormat('@STRING').setValue('LOW')
+  stockSheet.getRange("G6").setNumberFormat('@STRING').setValue('VOLUME')
+  stockSheet.getRange("H6").setNumberFormat('@STRING').setValue('SHARES')                           //Formatting for the Google sheet
+  stockSheet.getRange("I6").setNumberFormat('@STRING').setValue('PUCHASE PRICE')
+  stockSheet.getRange("J6").setNumberFormat('@STRING').setValue('PURCHASE VALUE')
+  stockSheet.getRange("K6").setNumberFormat('@STRING').setValue('CLOSE VALUE')
+  stockSheet.getRange("L6").setNumberFormat('@STRING').setValue('GAIN')
+
+
+
+  stockSheet.getRange("A1:A4").setFontSize(24).setFontWeight("bold");
+  stockSheet.getRange("A6:Z6").setBackgroundRGB(211, 211, 211).setFontSize(10).setFontWeight("bold");
+
+  //var lastRow = stockSheet.getLastRow();
+
+  var range = stockSheet.getRange("B4");
+  var lastRow = range.getValue();
+
+
+  for (var j = 7; j <= lastRow; j++) {
+
+    var symbol = stockSheet.getRange(j, 1).getValue();
+
+    var URL_STRING = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=" + apikey;
+
+    var response = UrlFetchApp.fetch(URL_STRING);
+
+    var json = response.getContentText();                               //fetches data from URL and parses it through json
+    var data = JSON.parse(json);
+
+    for (const [key, value] of Object.entries(data)) {                 //Cycles through the data (Grabs open, close, high, low, and volume)
+      console.log(key);
+      for (const [key2, value2] of Object.entries(value)) {
+        var date = key2;
+        var tseries = key;
+        console.log(date);
+        console.log(tseries);
+        for (const [key3, value3] of Object.entries(value2)) {
+
+          if (key3 == '1. open') {
+            var open = value3;
+          }
+          if (key3 == '2. high') {
+            var high = value3;
+          }
+          if (key3 == '3. low') {
+            var low = value3;
+          }
+          if (key3 == '4. close') {
+            var close = value3;
+          }
+          if (key3 == '5. volume') {
+            var volume = value3;
+          }
+
+        }
+        break;
+      }
+      // break;
+    }
+
+    stockSheet.getRange(j, 2).setValue(date);
+    stockSheet.getRange(j, 3).setValue(open);
+    if (close < open) {
+      stockSheet.getRange(j, 4).setBackgroundRGB(255, 102, 102)                      //Places the retrieved data into the Google sheets
+    } else {
+      stockSheet.getRange(j, 4).setBackgroundRGB(0, 179, 0)
+    }
+    stockSheet.getRange(j, 4).setValue(close);
+    stockSheet.getRange(j, 5).setValue(high);
+    stockSheet.getRange(j, 6).setValue(low);
+    stockSheet.getRange(j, 7).setValue(volume);
+
+    counter = counter + 1;
+
+    if (counter % 5 === 0) {                               //Free API allows 5 calls a minute (Waits one minute before making more calls)
+      sleep(60000);
+    }
+
+  }
+
+
+
+
+
+}
